@@ -1,2 +1,8 @@
 # STM32H743-Flight-Controller-PCBDesign
 Flight Controller is built around the STM32H743VIT6 microcontroller, providing the processing capability required for real-time flight control algorithms. The hardware integrates IMU sensors, a barometric pressure sensor, onboard power regulation, communication interfaces, SD card storage, and OSD support, making it suitable for  UAV platforms.
+
+This Flight-Controller is a high-performance UAV flight controller designed around the STM32H743VIT6 ARM Cortex-M7 microcontroller. The project focuses on developing a compact, reliable, and efficient multilayer PCB capable of supporting real-time flight control applications through robust power management, sensor integration, and high-speed communication interfaces.
+
+The hardware integrates dual ICM-42688-P IMU sensors for motion sensing, a DPS310 barometer for altitude estimation, and multiple communication interfaces including UART, SPI, and I²C for connecting GPS, telemetry modules, ESCs, and additional peripherals. A dedicated power architecture consisting of buck converters and low-dropout (LDO) regulators generates stable 9V, 5V, and 3.3V rails while minimizing electrical noise and improving overall system reliability.
+
+The PCB was designed using Altium Designer with emphasis on optimized component placement, controlled routing, proper grounding, decoupling, and signal integrity. High-speed signals and power traces were carefully separated to reduce EMI and ensure stable operation in demanding UAV environments. Additional features include MicroSD card support for flight data logging, SWD programming, USB connectivity, onboard status LEDs, buzzer, and OSD support for FPV systems.
