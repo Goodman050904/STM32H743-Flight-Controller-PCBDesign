@@ -1,0 +1,188 @@
+The project I designed is a custom STM32H743-based flight controller PCB for drone and UAV applications. The objective of this project was to develop a compact, reliable, and high-performance flight controller capable of handling sensor processing, communication, power management, OSD functionality, SD card logging, and external peripheral interfacing.
+
+The main controller used in this design is the STM32H743VIH6 microcontroller. It is an ARM Cortex-M7 based 32-bit single-core microcontroller running up to 480 MHz with 2 MB flash memory in a 100-TFBGA package. I selected this MCU because flight controllers require high-speed real-time processing for sensor fusion, stabilization algorithms, communication handling, and motor control.
+
+In drones, the MCU continuously reads sensor values and calculates corrections to maintain stable flight. This process is called a PID loop. PID stands for Proportional, Integral, and Derivative control. It continuously adjusts the motor output based on drone movement and sensor feedback to maintain stability and orientation.
+
+The schematic is divided into multiple sections:
+
+* MCU section
+* Sensor section
+* Buck regulator and LDO section
+* OSD section
+* Reverse polarity protection section
+* UART SBUS inverter section
+* Buzzer driver section
+* USB and SD card section
+* JST connector and pad section
+
+Starting with the MCU section, the STM32H743 is connected with SPI, UART, I2C, USB, and SDMMC interfaces.
+
+SDMMC stands for Secure Digital Memory Card Controller. It is used for high-speed communication with the SD card for blackbox logging and flight data storage.
+
+I also added SWD debugging test points named FC_SWD, FC_SWC, and GND. These test points are used for firmware uploading and debugging using an ST-Link programmer. FC_SWD is the Serial Wire Debug data line and FC_SWC is the Serial Wire Clock line.
+
+Battery sensing circuitry was also added in the MCU section. Battery voltage sensing helps monitor battery level, while current sensing measures how much current the drone is consuming during operation. This is important for battery monitoring, power management, and low-voltage warning systems.
+
+A current measurement test point was also added for easier testing and debugging during hardware validation.
+
+In the MCU section, I used multiple decoupling capacitors near every MCU power pin. Decoupling capacitors act like small local energy storage components. Whenever the MCU suddenly requires current during switching operations, these capacitors instantly supply clean current and reduce voltage fluctuations and noise.
+
+I also used pull-up resistors in important signal lines such as BOOT0, RESET, and I2C communication lines. Pull-up resistors ensure that the signal remains in a defined HIGH state when no active signal is driving the line.
+
+An 8 MHz ceramic resonator was used as the external clock source for the STM32H743 microcontroller.
+
+Coming to the sensor section, I used two ICM-42688-P IMUs. One IMU acts as the main IMU and the second acts as a redundant backup IMU. Redundant IMUs improve reliability because if one sensor becomes noisy or fails, the system can still continue operation using the backup IMU.
+
+I also used a DPS310 barometer for altitude and pressure measurement.
+
+In the PCB layout section, IMU placement was one of the most important considerations. I placed the IMUs above the MCU on the top side of the PCB because most MCU SPI pins connected to the IMUs are located on the upper side of the BGA package. This reduced routing complexity, reduced the number of vias, and allowed shorter signal traces.
+
+Shorter signal traces improve signal integrity and reduce noise pickup.
+
+Coming to the power section, the board supports 2S to 6S LiPo battery input, approximately from 5.6V to 25.2V.
+
+The board contains:
+
+* 5V 2A buck regulator
+* 9V 2A buck regulator
+* 3.3V LDO regulator
+
+For both 5V and 9V rails, I used TPS62933 buck regulators.
+
+Buck converters work using high-speed switching operation. The regulator rapidly switches the input voltage through an inductor and capacitors to efficiently reduce voltage with minimal power loss and lower heat generation.
+
+The 5V buck regulator is mainly used for sensors, USB, receiver modules, and peripherals.
+
+The 9V buck regulator is mainly used for HD VTX and external high-voltage peripherals.
+
+The 3.3V rail is generated using the TLV75733 LDO regulator. LDO stands for Low Dropout Regulator. Unlike buck converters, LDOs provide cleaner and lower-noise output voltage, which is important for sensitive circuits such as MCU and sensors.
+
+In the buck regulator section, both 0603 and 0402 capacitors were used.
+
+0603 capacitors were mainly selected for bulk input and output filtering because they support higher capacitance values and better power handling capability.
+
+0402 capacitors were mainly used for smaller decoupling and compensation applications because they save PCB space and are suitable for high-frequency filtering.
+
+The inductor and feedback resistor network control the buck converter operation and regulate the output voltage.
+
+I also used a PMEG4005CT Schottky diode in the power section.
+
+A Schottky diode is preferred because it has:
+
+* Lower forward voltage drop
+* Faster switching speed
+* Better efficiency
+* Lower heat generation compared to normal diodes
+
+This improves overall power efficiency in high-speed switching regulator applications.
+
+Power integrity was another important consideration in this design.
+
+Power integrity means ensuring that every IC receives stable and noise-free power without voltage drops or fluctuations. Poor power integrity can cause MCU reset issues, unstable communication, and noisy sensor readings.
+
+To improve power integrity:
+
+* Separate power sections were maintained
+* Ground planes were used properly
+* High-current traces were made wider
+* Decoupling capacitors were added near ICs
+* Switching regulators were isolated from sensitive sensors
+
+Coming to the OSD section, I used the AT7456E OSD chip for analog video overlay functionality in FPV systems. This chip overlays flight information such as battery voltage, timer, and telemetry onto the video signal.
+
+One challenge I faced was understanding the AT7456E datasheet because most available datasheets were in Chinese language. Since the component is mainly available through Chinese suppliers and JLCPCB libraries, documentation was difficult to understand initially.
+
+After detailed research, I found that the AT7456E behaves almost identically to the MAX7456 OSD chip. The register configuration, working principle, and pin functions were very similar. Using this comparison and online references, I was able to successfully design the schematic and PCB connections.
+
+For component libraries and footprints, some components were taken from SnapEDA, but I mainly referred to JLCPCB component availability to ensure manufacturing compatibility. I also manually created several library files based on datasheets and package dimensions.
+
+Coming to the UART SBUS inverter section, I used a BC817W NPN transistor.
+
+SBUS communication from RC receivers uses inverted UART signals. Since the STM32 UART communication is normally non-inverted, an inverter circuit is required. The BC817W transistor performs this signal inversion.
+
+For reverse polarity protection, I used an AO3401A P-channel MOSFET.
+
+Reverse polarity protection prevents PCB damage if the battery is accidentally connected in reverse direction. The MOSFET blocks reverse current flow and protects the entire board from damage.
+
+For the buzzer driver section, I used an AO3400A N-channel MOSFET transistor.
+
+The MCU GPIO pins cannot directly drive high-current buzzers safely. So the MOSFET acts as an electronic switch controlled by the MCU. When the MCU sends a signal, the MOSFET turns ON and drives the buzzer.
+
+Coming to the JST connector and pad sgeneralection, external connectors were provided for:
+
+* ESC connection
+* HD VTX
+* Receiver
+* GPS
+* UART communication
+* Battery input
+* Buzzer connection
+
+These connectors improve modularity and make peripheral interfacing easier.
+
+Now coming to the PCB design section.
+
+This PCB was designed as a 4-layer PCB stack-up.
+
+The approximate PCB thickness is around 63 mils.
+
+The stack-up contains:
+
+* Top signal layer
+* Inner ground plane
+* Inner power/signal layer
+* Bottom signal layer
+
+FR4 dielectric material was used between copper layers.
+
+Ground planes were created using polygon pours on both top and bottom layers. All polygon pours were properly connected to GND nets to improve grounding, reduce EMI noise, improve return current paths, and improve thermal performance.
+
+I used a large number of vias in this PCB because STM32H743 in BGA package has very dense routing requirements. Managing all MCU pins in a compact PCB size was one of the biggest challenges.
+
+Most MCU-to-IMU routing was performed on the top side because the IMUs were placed above the MCU.
+
+The SD card reader was placed near the bottom side of the MCU because most SDMMC pins are positioned on the lower side of the MCU package. This reduced routing crossover and improved routing organization.
+
+Most resistors, capacitors, IMUs, MCU support circuits, USB section, SD card support components, buzzer control circuitry, and pads were placed on the top layer for shorter routing and easier signal management.
+
+To reduce noise problems, high-power handling circuits such as buck regulators, LDO regulators, and JST power connectors were mainly placed on the bottom side and separated from sensitive sensor areas.
+
+Trace width calculation was also considered carefully.
+
+Some examples:
+
+* 9V traces used approximately 0.9 mm width
+* 5V BEC traces used approximately 0.9 mm width
+* VIN traces used up to 1.2 mm width
+* OSD 5V traces used around 0.4 mm width
+* LDO output traces used around 0.5 mm width
+
+High-current traces were routed wider to reduce voltage drop, improve current carrying capability, and reduce heating.
+
+Routing strategy included:
+
+* Shorter signal routing
+* Wider power traces
+* Proper ground return paths
+* Reduced sharp bends
+* Proper via usage
+* Separation between noisy and sensitive circuits
+* Compact BGA fanout routing
+
+One major challenge was routing the STM32H743 BGA package because of the dense pin arrangement. Another challenge was maintaining proper isolation between switching regulators and sensitive sensors while keeping the board compact.
+
+Through this project, I gained practical experience in:
+
+* High-speed PCB routing
+* Power supply design
+* Multi-layer PCB stack-up planning
+* BGA fanout routing
+* Sensor integration
+* Power integrity
+* Signal integrity
+* EMI reduction techniques
+* Library creation
+* Manufacturing-oriented PCB design
+
+This project helped me understand the complete workflow from schematic design to final PCB implementation.
